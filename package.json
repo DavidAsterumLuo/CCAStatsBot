@@ -1,0 +1,21 @@
+{
+  "name": "statsbot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start-no-build": "node src/index.js",
+    "prestart": "npx tsc",
+    "start": "node src/index.js"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^14.13.0",
+    "nxapi": "github:samuelthomas2774/nxapi#main",
+    "typescript": "^5.2.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.2"
+  }
+}
