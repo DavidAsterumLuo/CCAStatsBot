@@ -30,7 +30,7 @@ async function getNintendoAccountSessionToken(dm: DMChannel): Promise<string> {
 export async function statsCommand(dm: DMChannel) {
     let nxapi = await import('nxapi');
 
-    nxapi.addUserAgent('ccastatsbot/1.0.0 (+https://github.com/tbd)');
+    nxapi.addUserAgent('ccastatsbot/1.0.0 (+https://github.com/Candygoblen123/CCAStatsBot)');
 
     const na_session_token = getNintendoAccountSessionToken(dm);
     let coralApi = await import('nxapi/coral');
