@@ -8,4 +8,4 @@ To run, create a `config.json` file in the root of the project with the followin
 }
 ```
 
-Then run `npm run start` to start the bot.
+Then run `npm start` to start the bot.
