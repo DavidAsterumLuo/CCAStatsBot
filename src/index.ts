@@ -1,51 +1,62 @@
 #! /usr/bin/env node
 
-import { Message } from "discord.js";
-import { statsCommand } from "./nxapi.js";
-import configJson from '../config.json';
 
-const { Client, GatewayIntentBits } = require('discord.js');
-
-const prefix = '!';
+const fs = require('node:fs');
+const path = require('node:path');
+const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
+const { token } = require('../config.json');
 
 const client = new Client({
 	intents: [
-		GatewayIntentBits.Guilds,
-		GatewayIntentBits.GuildMessages,
-		GatewayIntentBits.MessageContent,
 		GatewayIntentBits.GuildMembers,
         GatewayIntentBits.DirectMessages,
-        GatewayIntentBits.DirectMessageTyping,
 	],
 });
+
+client.commands = new Collection();
+const foldersPath = path.join(__dirname, 'commands');
+const commandFolders = fs.readdirSync(foldersPath);
+
+for (const folder of commandFolders) {
+	const commandsPath = path.join(foldersPath, folder);
+	const commandFiles = fs.readdirSync(commandsPath).filter((file: string) => file.endsWith('.js'));
+	for (const file of commandFiles) {
+		const filePath = path.join(commandsPath, file);
+		const command = require(filePath);
+		// Set a new item in the Collection with the key as the command name and the value as the exported module
+		if ('data' in command && 'execute' in command) {
+			client.commands.set(command.data.name, command);
+		} else {
+			console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+		}
+	}
+}
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
 });
 
-client.on("messageCreate", async (message: Message) => {
-	if (message.author.bot) return;
-	if (!message.content.startsWith(prefix)) return;
+client.on(Events.InteractionCreate, async (interaction: any) => {
+	if (!interaction.isChatInputCommand()) return;
+	
+	const command = interaction.client.commands.get(interaction.commandName);
 
-	let command = message.content.split(" ")[0];
-	command = command.slice(prefix.length);
+	if (!command) {
+		console.error(`No command matching ${interaction.commandName} was found.`);
+		return;
+	}
 
-	const args = message.content.slice(prefix.length).trim().split(/ +/g);
-
-	if (command === "UploadStats") {
-        let dm = await message.author.createDM().catch(() => {
-            message.reply("We couldn't send you a DM, make sure you're allowing them!")
-        });
-
-        if (dm != null) {
-			try {
-				await statsCommand(dm);
-			} catch (error) {
-				console.log("An error occured:" + error);
-			}
-        }
+	try {
+		await command.execute(interaction);
+	} catch (error) {
+		console.error(error);
+		if (interaction.replied || interaction.deferred) {
+			await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
+		} else {
+			await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+		}
 	}
 });
 
-const botToken = configJson.token;
+const botToken = token;
 client.login(botToken);

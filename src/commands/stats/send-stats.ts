@@ -1,8 +1,25 @@
 #! /usr/bin/env node
 
-import { DMChannel, Message } from 'discord.js';
+import { CommandInteraction, DMChannel, Message } from 'discord.js';
+const { SlashCommandBuilder } = require('discord.js');
 
-async function getNintendoAccountSessionToken(dm: DMChannel): Promise<string> {
+module.exports = {
+	data: new SlashCommandBuilder()
+		.setName('send-stats')
+		.setDescription('Starts the process to send in stats from your match.'),
+	async execute(interaction: CommandInteraction) {
+		let dm = await interaction.user.createDM().catch(() => {
+            interaction.reply({ content: 'We failed to send you a DM, so make sure you are allowing them!', ephemeral: true });
+        });
+        if (dm != null) {
+            let task = statsCommand(dm);
+            interaction.reply({ content: 'Check your DMs!', ephemeral: true });
+            await task;
+        }
+	},
+};
+
+async function getNintendoAccountSessionToken(dm: DMChannel): Promise<{na_session_token: string, loadMessage: Message}> {
     let naApi = await import('nxapi/nintendo-account');
     let auth = naApi.NintendoAccountSessionAuthorisation.create("71b963c1b7b6d119", "openid user user.birthday user.mii user.screenName");
 
@@ -17,6 +34,8 @@ async function getNintendoAccountSessionToken(dm: DMChannel): Promise<string> {
         throw error;
     })
 
+    let loadMessage = await dm.send("<a:SplatnetLoad:1163902704192585819> Please wait...");
+
     let applink = authUrlMessage.first()!.content
 
     const authorisedurl = new URL(applink);
@@ -24,17 +43,17 @@ async function getNintendoAccountSessionToken(dm: DMChannel): Promise<string> {
 
     const token = await auth.getSessionToken(authorisedparams);
 
-    return token.session_token;
+    return {na_session_token: token.session_token, loadMessage: loadMessage};
 };
 
-export async function statsCommand(dm: DMChannel) {
+async function statsCommand(dm: DMChannel) {
     let nxapi = await import('nxapi');
 
     nxapi.addUserAgent('ccastatsbot/1.0.0 (+https://github.com/Candygoblen123/CCAStatsBot)');
 
-    const na_session_token = getNintendoAccountSessionToken(dm);
+    const {na_session_token, loadMessage} = await getNintendoAccountSessionToken(dm);
     let coralApi = await import('nxapi/coral');
-    const nso = await coralApi.default.createWithSessionToken(await na_session_token).catch(async (error) => {
+    const nso = await coralApi.default.createWithSessionToken(na_session_token).catch(async (error) => {
         await dm.send("Could not authenticate with Nintendo: " + error + "\nPlease wait an hour, then try again.");
         throw error;
     });
@@ -59,7 +78,7 @@ export async function statsCommand(dm: DMChannel) {
     for (let str of verification_strings) {
         verifyString += str + "\n"
     }
-    await dm.send(verifyString);
+    await loadMessage.edit(verifyString);
     const ids = matches.map(match => { return match.id });
 
     let deets = (await splatnet.getBattleHistoryDetail(ids[0])).data.vsHistoryDetail;
