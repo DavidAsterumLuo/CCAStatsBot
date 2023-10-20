@@ -82,6 +82,7 @@ async function statsCommand(dm: DMChannel) {
     const ids = matches.map(match => { return match.id });
 
     let deets = (await splatnet.getBattleHistoryDetail(ids[0])).data.vsHistoryDetail;
+    console.log(deets);
 
     let deets_string = "Your score: " + deets.myTeam.result?.score + "\n";
     deets_string += "Their score: " + deets.otherTeams[0].result?.score + "\n";
