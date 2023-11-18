@@ -70,8 +70,8 @@ async function statsCommand(dm: DMChannel) {
     const sessions = results.data.privateBattleHistories.historyGroups.nodes;
 
     const matches = sessions[0].historyDetails.nodes;
-    console.log(matches[0]);
-    console.log((await splatnet.getBattleHistoryDetail(matches[0].id)).data.vsHistoryDetail);
+    // console.log(matches[0]);
+    // console.log((await splatnet.getBattleHistoryDetail(matches[0].id)).data.vsHistoryDetail);
     let csvString = "Timer, Map, Mode, Team 1 Score, Team2 Score, P1 Splashtag, P1 Weapon, P1 KA, P1 Assists, P1 Deaths, P1 Special, P1 #Specials, P1 Paint, P2 Splashtag, P2 Weapon, P2 KA, P2 Assists, P2 Deaths, P2 Special, P2 #Specials, P2 Paint, P3 Splashtag, P3 Weapon, P3 KA, P3 Assists, P3 Deaths, P3 Special,P3 #Specials, P3 Paint, P4 Splashtag, P4 Weapon, P4 KA, P4 Assists, P4 Deaths, P4 Special, P4 #Specials, P4 Paint, P5 Splashtag, P5 Weapon, P5 KA, P5 Assists, P5 Deaths, P5 Special, P5 #Specials, P5 Paint, P6 Splashtag, P6 Weapon, P6 KA, P6 Assists, P6 Deaths, P6 Special, P6 #Specials, P6 Paint, P7 Splashtag, P7 Weapon, P7 KA, P7 Assists, P7 Deaths, P7 Special, P7 #Specials, P7 Paint, P8 Splashtag, P8 Weapon, P8 KA, P8 Assists, P8 Deaths, P8 Special, P8 #Specials, P8 Paint \n";
     for (let match of matches){
         let id = match.id;
@@ -84,7 +84,7 @@ async function statsCommand(dm: DMChannel) {
         let their_score = details.otherTeams[0].result?.score
         let duration = Math.floor(details.duration / 60) + ":" + details.duration % 60
         let yourTeamDeets = details.myTeam.players.map(player => {
-            return player.name + "," + player.weapon.name + "," +
+            return player.name +"#"+ player.nameId + "," + player.weapon.name + "," +
                 player.result?.kill + "," + player.result?.death + "," +
                 player.result?.assist + "," + player.weapon.specialWeapon.name +
                 "," + player.result?.special + "," + player.paint;
@@ -119,7 +119,7 @@ async function statsCommand(dm: DMChannel) {
             p4 = ',,,,,,,';
         }
         let theirTeamDeets = details.otherTeams[0].players.map(player => {
-            return player.name + "," + player.weapon.name + "," +
+            return player.name +"#"+ player.nameId + "," + player.weapon.name + "," +
                 player.result?.kill + "," + player.result?.death + "," +
                 player.result?.assist + "," + player.weapon.specialWeapon.name +
                 "," + player.result?.special + "," + player.paint;
@@ -148,7 +148,7 @@ async function statsCommand(dm: DMChannel) {
         // Format: Timer, Map, Mode, Team1(Winner), Team 1 Score, Team 2(Loser), Team2 Score, P1 Splashtag, P1 Weapon, P1 KA, P1 Assists, P1 Deaths, P1 Specials, P1 Paint, P2...
 
     }
-    console.log(csvString)
+    // console.log(csvString)
     await loadMessage.edit("Done!");
     const buffer = Buffer.from(csvString, "utf-8");
     await dm.send(
