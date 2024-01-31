@@ -35,7 +35,7 @@ async function getNintendoAccountSessionToken(dm: DMChannel): Promise<{na_sessio
         await dm.send("Response timeout. Please start the process over.")
         throw error;
     })
-
+    // TODO improve dm with formating, use embeds
     let loadMessage = await dm.send("<a:SplatnetLoad:1163902704192585819> Please wait...");
 
     let applink = authUrlMessage.first()!.content
@@ -74,8 +74,13 @@ async function statsCommand(dm: DMChannel) {
     const matches = sessions[0].historyDetails.nodes;
     // console.log(matches[0]);
     // console.log((await splatnet.getBattleHistoryDetail(matches[0].id)).data.vsHistoryDetail);
+
+    // This is the header for the CSV file later
     let csvString = "Timer, Map, Mode, Team 1 Score, Team2 Score, P1 Splashtag, P1 Weapon, P1 KA, P1 Assists, P1 Deaths, P1 Special, P1 #Specials, P1 Paint, P2 Splashtag, P2 Weapon, P2 KA, P2 Assists, P2 Deaths, P2 Special, P2 #Specials, P2 Paint, P3 Splashtag, P3 Weapon, P3 KA, P3 Assists, P3 Deaths, P3 Special,P3 #Specials, P3 Paint, P4 Splashtag, P4 Weapon, P4 KA, P4 Assists, P4 Deaths, P4 Special, P4 #Specials, P4 Paint, P5 Splashtag, P5 Weapon, P5 KA, P5 Assists, P5 Deaths, P5 Special, P5 #Specials, P5 Paint, P6 Splashtag, P6 Weapon, P6 KA, P6 Assists, P6 Deaths, P6 Special, P6 #Specials, P6 Paint, P7 Splashtag, P7 Weapon, P7 KA, P7 Assists, P7 Deaths, P7 Special, P7 #Specials, P7 Paint, P8 Splashtag, P8 Weapon, P8 KA, P8 Assists, P8 Deaths, P8 Special, P8 #Specials, P8 Paint \n";
+    
     // TODO create match selection logic
+
+    // TODO let user select session (Dropdown?)
 
     // Display first 15 matches
     let tmp = "";
@@ -93,6 +98,8 @@ async function statsCommand(dm: DMChannel) {
         index ++;
     }
     await loadMessage.edit(selectionString);
+
+    // TODO improve selection command
     await dm.send("Select matches by responding with 'select (comma seperated numbers)' \nexample: select 0,2,3");
     // Let user select relevent matches
     const filter = (m: Message) => m.content.startsWith("select");
@@ -100,6 +107,8 @@ async function statsCommand(dm: DMChannel) {
         await dm.send("Response timeout. Please start the process over.");
         throw error;
     })
+
+    await dm.send("Loading...")
     
     let matchSelections = selectionMessage.first()!.content.replace("select", "")
     matchSelections = matchSelections.replace(/\s/g, '');
@@ -114,15 +123,15 @@ async function statsCommand(dm: DMChannel) {
     // store relevent matches in 'matches'
 
 
-
     for (let selectionIndex of matchIndex){
-        let match = matches[0]
-        try {
-            match = matches[selectionIndex]
-        } catch (error) {
-            await dm.send("Invalid Index! Please check index")
-            throw error
-        }
+        let match = matches[selectionIndex];
+
+        // TODO, Let the user retry the select command on failure
+        if (match == undefined){
+            await dm.send("Invalid Index! Please check match numbers and try again from the start");
+            return;
+        } 
+ 
         let id = match.id;
         // let timePlayed = match.playedTime;
         let mode = match.vsRule.name;
@@ -186,6 +195,7 @@ async function statsCommand(dm: DMChannel) {
     // wait loadMessage.edit("Done!");
     const buffer = Buffer.from(csvString, "utf-8");
     //TODO maybe don't have the players download a file from the bot?
+    //TODO send to CCA channel
     await dm.send(
         {content: "Here's your data file!",
          files: [{ attachment: buffer, name: "data.csv"}]});
