@@ -6,7 +6,8 @@ To run, create a `config.json` file in the root of the project with the followin
 {
 	"token": "your-token-goes-here",
 	"clientId": "your-application-id-goes-here",
-	"guildId": "your-server-id-goes-here"
+	"guildId": "your-server-id-goes-here",
+	"webhookurl":"your-webhook-url-goes-here"
 }
 ```
 You can run `node deploy-commands.js` to update the slash commands on discord.
