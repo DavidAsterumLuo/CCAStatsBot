@@ -3,7 +3,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
+const { Client, Collection, Events, GatewayIntentBits, ActivityType } = require('discord.js');
 const { token } = require('../config.json');
 
 const client = new Client({
@@ -34,6 +34,10 @@ for (const folder of commandFolders) {
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
+
+	client.user.setActivity(
+		"/send-stats", {type: ActivityType.Listening}
+	)
 });
 
 client.on(Events.InteractionCreate, async (interaction: any) => {

@@ -3,6 +3,7 @@
 import { match } from 'assert';
 import { error } from 'console';
 import { CommandInteraction, DMChannel, Message, Webhook, WebhookClient} from 'discord.js';
+import { url } from 'inspector';
 import { sep } from 'path';
 
 
@@ -75,7 +76,8 @@ async function statsCommand(dm: DMChannel) {
     const results = await splatnet.getPrivateBattleHistories();
 
     const sessions = results.data.privateBattleHistories.historyGroups.nodes;
-
+    const username = dm.recipient?.displayName;
+    const currentTime = new Date().toISOString();
 
     //fs.writeFile('FILE.txt', JSON.stringify(results), (err: NodeJS.ErrnoException) => {
     //    if (err) throw error;
@@ -86,8 +88,8 @@ async function statsCommand(dm: DMChannel) {
     // console.log((await splatnet.getBattleHistoryDetail(matches[0].id)).data.vsHistoryDetail);
 
     // This is the header for the CSV file later
-    let csvString = "Timer, Map, Mode, Team 1 Score, Team2 Score, P1 Splashtag, P1 Weapon, P1 KA, P1 Assists, P1 Deaths, P1 Special, P1 #Specials, P1 Paint, P2 Splashtag, P2 Weapon, P2 KA, P2 Assists, P2 Deaths, P2 Special, P2 #Specials, P2 Paint, P3 Splashtag, P3 Weapon, P3 KA, P3 Assists, P3 Deaths, P3 Special,P3 #Specials, P3 Paint, P4 Splashtag, P4 Weapon, P4 KA, P4 Assists, P4 Deaths, P4 Special, P4 #Specials, P4 Paint, P5 Splashtag, P5 Weapon, P5 KA, P5 Assists, P5 Deaths, P5 Special, P5 #Specials, P5 Paint, P6 Splashtag, P6 Weapon, P6 KA, P6 Assists, P6 Deaths, P6 Special, P6 #Specials, P6 Paint, P7 Splashtag, P7 Weapon, P7 KA, P7 Assists, P7 Deaths, P7 Special, P7 #Specials, P7 Paint, P8 Splashtag, P8 Weapon, P8 KA, P8 Assists, P8 Deaths, P8 Special, P8 #Specials, P8 Paint \n";
-    
+    let header = "SubmittedBy,SubmittedAt,MatchDateTime,Timer,Map,Mode,Team 1 Score,Team2 Score,P1 Splashtag,P1 Weapon,P1 KA,P1 Assists,P1 Deaths,P1 Special,P1 #Specials,P1 Paint,P2 Splashtag,P2 Weapon,P2 KA,P2 Assists,P2 Deaths,P2 Special,P2 #Specials,P2 Paint,P3 Splashtag,P3 Weapon,P3 KA,P3 Assists,P3 Deaths,P3 Special,P3 #Specials,P3 Paint,P4 Splashtag,P4 Weapon,P4 KA,P4 Assists,P4 Deaths,P4 Special,P4 #Specials,P4 Paint,P5 Splashtag,P5 Weapon,P5 KA,P5 Assists,P5 Deaths,P5 Special,P5 #Specials,P5 Paint,P6 Splashtag,P6 Weapon,P6 KA,P6 Assists,P6 Deaths,P6 Special,P6 #Specials,P6 Paint,P7 Splashtag,P7 Weapon,P7 KA,P7 Assists,P7 Deaths,P7 Special,P7 #Specials,P7 Paint,P8 Splashtag,P8 Weapon,P8 KA,P8 Assists,P8 Deaths,P8 Special,P8 #Specials,P8 Paint \n";
+    let csvString = ""
     // TODO create match selection logic
     let tmp = "";
     let selectionString = "";
@@ -116,15 +118,15 @@ async function statsCommand(dm: DMChannel) {
         throw error
     }
     
-    const matches = sessions[sessionNumber].historyDetails.nodes;
-    if (matches == undefined){
+    const check = sessions[sessionNumber];
+    if (check == undefined){
         await dm.send("Invalid Index! Please start the process over.");
         return;
     }
+    const matches = sessions[sessionNumber].historyDetails.nodes;
+    // TODO change to dropdown?
 
-    // TODO let user select session (Dropdown?)
-
-    // Display first all matches in the session
+    // Display all matches in the session
     tmp = "";
     selectionString = "";
     index = 0;
@@ -173,7 +175,7 @@ async function statsCommand(dm: DMChannel) {
         } 
  
         let id = match.id;
-        // let timePlayed = match.playedTime;
+        let timePlayed = match.playedTime;
         let mode = match.vsRule.name;
         let stage = match.vsStage.name;
         // let result = match.judgement;
@@ -227,28 +229,58 @@ async function statsCommand(dm: DMChannel) {
             p8 = theirTeamDeets[3];
         }
         // TODO add team names, reference the python script
-        csvString += duration + ","+ stage + "," + mode + "," + my_score + "," + their_score + "," + p1 + "," + p2 + "," + p3 + "," + p4 + "," + p5 + "," + p6 + "," + p7 + "," + p8 + "\n";
-        // Format: Timer, Map, Mode, Team1(Winner), Team 1 Score, Team 2(Loser), Team2 Score, P1 Splashtag, P1 Weapon, P1 KA, P1 Assists, P1 Deaths, P1 Specials, P1 Paint, P2...
+        csvString += username + "," + currentTime + "," + timePlayed + "," + duration + ","+ stage + "," + mode + "," + my_score + "," + their_score + "," + p1 + "," + p2 + "," + p3 + "," + p4 + "," + p5 + "," + p6 + "," + p7 + "," + p8 + "\n";
+        // Format: SubmittedBy, SubmittedAt, MatchDateTime, Timer, Map, Mode, Team1(Winner), Team 1 Score, Team 2(Loser), Team2 Score, P1 Splashtag, P1 Weapon, P1 KA, P1 Assists, P1 Deaths, P1 Specials, P1 Paint, P2...
 
     }
     // console.log(csvString)
     // wait loadMessage.edit("Done!");
-    const buffer = Buffer.from(csvString, "utf-8");
+    const buffer = Buffer.from(header + csvString, "utf-8");
     //TODO maybe don't have the players download a file from the bot?
-    //TODO send to CCA channel
     await dm.send(
-        {content: "Here's your data file!",
+        {content: "Your data has been sent! here is the data for your own records!",
          files: [{ attachment: buffer, name: "data.csv"}]});
 
-    const username = dm.recipient?.displayName;
+    //Append content to existing file
+    const filePath = "CCA_Stats.csv"
 
-    const webhook = new WebhookClient({url:webhookurl})
-    webhook.send({
-    files: [{
-        attachment: buffer,
-        name: username + "_" +Date.now() +".csv"
-    }]
+    //Check if file exists
+    fs.access(filePath, fs.constants.F_OK, (err: NodeJS.ErrnoException) =>{
+        if (err){
+            console.log("file doesn't exist!")
+            const writeStream = fs.createWriteStream(filePath, {flags: "a"});
+            writeStream.write(header + csvString, 'utf-8', (err: NodeJS.ErrnoException) =>{
+                if (err){
+                    console.error("Appending Data Failed!", err);
+                }
+            })
+        } else{
+            console.log("file exists!")
+            const writeStream = fs.createWriteStream(filePath, {flags: "a"});
+            writeStream.write(csvString, 'utf-8', (err: NodeJS.ErrnoException) =>{
+                if (err){
+                    console.error("Appending Data Failed!", err);
+                }
+            })
+        }
     })
-    .then(console.log)
-    .catch(console.error)
+
+
+    
+    
+
+    //Send to webhook on CCA server
+/*    
+for (let weburl of webhookurl){
+        let webhook = new WebhookClient({url:weburl})
+        webhook.send({
+            files: [{
+                attachment: buffer,
+                name: username + "_" +Date.now() +".csv"
+            }]
+            })
+            .then(console.log)
+            .catch(console.error)
+    }
+*/
 }
