@@ -155,10 +155,9 @@ async function statsCommand(dm: DMChannel) {
             return;
         }
         let matchSelections = selectionMessage.first()!.content.replace("select", "");
-        matchSelections = matchSelections.replace(/\s/g, '');
-        matchIndex = extractRangeFromString(matchSelections);
+        matchIndex = [...new Set(extractRangeFromString(matchSelections))]
         if (matchIndex == null || matchIndex.length == 0){
-            await dm.send("Incorect Format! Do not use whitespaces to seperate numbers! Please try again or type `quit`");
+            await dm.send("Incorect Format! Please try again or type `quit`");
             continue
         }
         // console.log(matchIndex)
