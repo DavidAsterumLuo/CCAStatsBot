@@ -142,25 +142,29 @@ async function statsCommand(dm: DMChannel) {
 
 
     // TODO improve selection command
-    // TODO Add support for ranges ex(0-5)
-    await dm.send("Select matches by responding with\n `select [comma seperated numbers]` \nexample: `select 0,2,3`");
-    // Let user select relevent matches
-    selectionMessage = await dm.awaitMessages({ filter, max: 1, time: 600_000, errors: ['time'] }).catch(async (error) => {
-        await dm.send("Response timeout. Please start the process over.");
-        throw error;
-    })
-
-    await dm.send("Loading...")
-    
-    let matchSelections = selectionMessage.first()!.content.replace("select", "")
-    matchSelections = matchSelections.replace(/\s/g, '');
-    const regex = /^\d+(,\d+)*$/;
-
-    if (regex.test(matchSelections) == false){
-        await dm.send("message not in correct format! Please start the process over")
+    let matchIndex = null
+    while (true){
+        await dm.send("Select matches by responding with\n `select [numbers or ranges]` \nexample: `select 0,2,4-6`");
+        // Let user select relevent matches
+        selectionMessage = await dm.awaitMessages({ filter, max: 1, time: 600_000, errors: ['time'] }).catch(async (error) => {
+            await dm.send("Response timeout. Please start the process over.");
+            throw error;
+        })        
+        if (selectionMessage.first()!.content.toLowerCase() == 'quit'){
+            await dm.send("Exiting");
+            return;
+        }
+        let matchSelections = selectionMessage.first()!.content.replace("select", "");
+        matchSelections = matchSelections.replace(/\s/g, '');
+        matchIndex = extractRangeFromString(matchSelections);
+        if (matchIndex == null || matchIndex.length == 0){
+            await dm.send("Incorect Format! Do not use whitespaces to seperate numbers! Please try again or type `quit`");
+            continue
+        }
+        // console.log(matchIndex)
+        break;
     }
-    const matchIndex = matchSelections.split(',').map(Number);
-    console.log(matchIndex)
+
 
     // store relevent matches in 'matches'
 
@@ -265,6 +269,30 @@ async function statsCommand(dm: DMChannel) {
         }
     })
 
+    function extractRangeFromString(inputString : string){
+        // Matches any number seperated by a non number or two numbers seperated by '-'
+        const pattern = /(\d+)-(\d+)|(\d+)/g;
+
+        // Detect matches
+        const matches = inputString.match(pattern)
+        
+        if (matches){
+            const rangeArray = [];
+            // Loop through matches
+            for (const match of matches){
+                // Handle range
+                if (match.includes('-')){
+                    const [startNumber, endNumber] = match.split('-').map(Number);
+                    rangeArray.push(...Array.from({ length: endNumber - startNumber + 1 }, (_, index) => startNumber + index));
+                } else {
+                    // Handle single number
+                    rangeArray.push(parseInt(match))
+                }
+            }
+            return rangeArray;
+        }
+        return null;
+    }
 
     
     
