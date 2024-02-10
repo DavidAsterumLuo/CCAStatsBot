@@ -102,7 +102,7 @@ async function statsCommand(dm: DMChannel) {
         index += 1;
     }
     await loadMessage.edit(selectionString);
-    await dm.send("What day were the matches played? respond with 'select number' \nexample: select 2");
+    await dm.send("What day were the matches played?\n respond with `select [number]` \nexample: `select 2`");
     const filter = (m: Message) => m.content.startsWith("select");
     let selectionMessage = await dm.awaitMessages({ filter, max: 1, time: 600_000, errors: ['time'] }).catch(async (error) => {
         await dm.send("Response timeout. Please start the process over.");
@@ -143,7 +143,7 @@ async function statsCommand(dm: DMChannel) {
 
     // TODO improve selection command
     // TODO Add support for ranges ex(0-5)
-    await dm.send("Select matches by responding with 'select (comma seperated numbers)' \nexample: select 0,2,3");
+    await dm.send("Select matches by responding with\n `select [comma seperated numbers]` \nexample: `select 0,2,3`");
     // Let user select relevent matches
     selectionMessage = await dm.awaitMessages({ filter, max: 1, time: 600_000, errors: ['time'] }).catch(async (error) => {
         await dm.send("Response timeout. Please start the process over.");
