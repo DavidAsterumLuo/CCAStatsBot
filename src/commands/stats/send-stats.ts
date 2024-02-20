@@ -44,12 +44,15 @@ async function getNintendoAccountSessionToken(dm: DMChannel): Promise<{na_sessio
     // TODO improve dm with formating, use embeds
     let loadMessage = await dm.send("<a:SplatnetLoad:1163902704192585819> Please wait...");
 
+    
     let applink = authUrlMessage.first()!.content;
 
     const authorisedurl = new URL(applink);
     const authorisedparams = new URLSearchParams(authorisedurl.hash.substring(1));
-
+    console.log(authorisedparams)
+    // TODO PRIORITY FIX THE ANDROID BUG
     const token = await auth.getSessionToken(authorisedparams);
+ 
 
     return {na_session_token: token.session_token, loadMessage: loadMessage};
 };
@@ -59,10 +62,13 @@ async function statsCommand(dm: DMChannel) {
 
     nxapi.addUserAgent('ccastatsbot/1.0.0 (+https://github.com/Candygoblen123/CCAStatsBot)');
 
-    const {na_session_token, loadMessage} = await getNintendoAccountSessionToken(dm);
+    const {na_session_token, loadMessage} = await getNintendoAccountSessionToken(dm).catch(async (error) =>{
+        await dm.send("Improper Token! Be sure to not reuse tokens!: " + error +"\n Currently Android is not supported due to some URL issues" +"\nIf you are using Iphone you might have some issues here, try copy pasting the link into your browser instead of clicking it\n@Asterum if you need help with this error");
+        throw error;
+    });
     let coralApi = await import('nxapi/coral');
     const nso = await coralApi.default.createWithSessionToken(na_session_token).catch(async (error) => {
-        await dm.send("Could not authenticate with Nintendo: " + error + "\nPlease wait an hour, then try again.");
+        await dm.send("Could not authenticate with Nintendo: " + error + "\n @Asterum if you need help with this error");
         throw error;
     });
     let coral = nso.nso;
@@ -150,14 +156,14 @@ async function statsCommand(dm: DMChannel) {
             await dm.send("Response timeout. Please start the process over.");
             throw error;
         })        
-        if (selectionMessage.first()!.content.toLowerCase() == 'quit'){
+        if (selectionMessage.first()!.content.toLowerCase() == 'select quit'){
             await dm.send("Exiting");
             return;
         }
         let matchSelections = selectionMessage.first()!.content.replace("select", "");
         matchIndex = [...new Set(extractRangeFromString(matchSelections))]
         if (matchIndex == null || matchIndex.length == 0){
-            await dm.send("Incorect Format! Please try again or type `quit`");
+            await dm.send("Incorect Format! Please try again or type `select quit`");
             continue
         }
         // console.log(matchIndex)
@@ -211,7 +217,7 @@ async function statsCommand(dm: DMChannel) {
             p3 = yourTeamDeets[2];
         }
         if (typeof(yourTeamDeets[3]) != 'undefined'){
-            p4 = yourTeamDeets[3];
+            p4 = yourTeamDeets[3];  
         }
         let theirTeamDeets = details.otherTeams[0].players.map(player => {
             return player.name +"#"+ player.nameId + "," + player.weapon.name + "," +
@@ -239,14 +245,10 @@ async function statsCommand(dm: DMChannel) {
     // console.log(csvString)
     // wait loadMessage.edit("Done!");
     const buffer = Buffer.from(header + csvString, "utf-8");
-    //TODO maybe don't have the players download a file from the bot?
-    await dm.send(
-        {content: "Your data has been sent! here is the data for your own records!",
-         files: [{ attachment: buffer, name: "data.csv"}]});
 
     //Append content to existing file
     const filePath = "CCA_Stats.csv"
-
+    
     //Check if file exists
     fs.access(filePath, fs.constants.F_OK, (err: NodeJS.ErrnoException) =>{
         if (err){
@@ -266,7 +268,12 @@ async function statsCommand(dm: DMChannel) {
                 }
             })
         }
+
     })
+
+    await dm.send(
+        {content: "Your data has been sent!, We have recieved " + matchIndex.length + " matches from you!"});
+
 
     function extractRangeFromString(inputString : string){
         // Matches any number seperated by a non number or two numbers seperated by '-'
@@ -296,18 +303,18 @@ async function statsCommand(dm: DMChannel) {
     
     
 
-    //Send to webhook on CCA server
-/*    
+    //Send to webhook on CCA server (backup files)
+
 for (let weburl of webhookurl){
         let webhook = new WebhookClient({url:weburl})
         webhook.send({
             files: [{
                 attachment: buffer,
-                name: username + "_" +Date.now() +".csv"
+                name: username + "_" +Date.now() + "_Backup" +".csv"
             }]
             })
             .then(console.log)
             .catch(console.error)
     }
-*/
+
 }
