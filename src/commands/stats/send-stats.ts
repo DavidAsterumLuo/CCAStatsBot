@@ -333,7 +333,7 @@ async function statsCommand(dm: DMChannel) {
 
     await dm.send(
         {content: "Your data has been sent!, We have recieved " + matchIndex.length + " matches from you!" + "\ntesting Team Detection Feature, this feature assumes matches submitted only between 2 teams and is not used for official scoring for the league"
-     + "\nrecieved " +Team1Wins + " wins from " + Team1 + "  and " + Team2Wins + " wins from " + Team2 + "\n You can verify games sent by checking the csv provided",
+     + "\nrecieved " +Team1Wins + " wins from " + Team1 + " and " + Team2Wins + " wins from " + Team2 + "\n You can verify games sent by checking the csv provided",
      files: [{attachment: buffer, name: "data.csv"}]
     });
 
