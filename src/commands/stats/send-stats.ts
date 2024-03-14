@@ -85,6 +85,30 @@ async function statsCommand(dm: DMChannel) {
     const username = dm.recipient?.displayName;
     const currentTime = new Date().toISOString();
 
+    //Read in RosterFile    
+    let playerTeamMap: { [key: string]: string } = {};
+
+    fs.readFile('rosters.txt', 'utf8', (err: any, data: string) => {
+      if (err) {
+        console.error('Error reading the file:', err);
+        return;
+      }
+      // Parse the JSON data into a TypeScript object
+      playerTeamMap = JSON.parse(data);
+    });
+          // Example usage: mapping a player to a team
+          // const player: string = 'Player1';
+          // if (player in playerTeamMap) {
+          // const team: string = playerTeamMap[player];
+          //  console.log(`${player} belongs to ${team}`);
+          //} else {
+          //  console.log(`${player} is not found in the mapping.`);
+          //}
+        
+          // You can use playerTeamMap object to map players to teams as needed
+
+
+
     //fs.writeFile('FILE.txt', JSON.stringify(results), (err: NodeJS.ErrnoException) => {
     //    if (err) throw error;
     //    console.log("File saved!")
@@ -170,10 +194,37 @@ async function statsCommand(dm: DMChannel) {
         break;
     }
 
+    // Try to get Team Names
+    let Team1 = "";
+    let Team2 = "";
+    const firstIndex = matches[matchIndex[0]];
+    if (firstIndex == undefined){
+        await dm.send("Invalid Index! Please start the process over");
+        return;
+    } 
+    const firstMatch = firstIndex.id
+    const firstDetail = (await splatnet.getBattleHistoryDetail(firstMatch)).data.vsHistoryDetail;
+    const Splashtag1 = firstDetail.myTeam.players.map(player =>{return player.name + "#" + player.nameId})
+    if (Splashtag1[0] in playerTeamMap) {
+        Team1 = playerTeamMap[Splashtag1[0]];
+        console.log(`${Splashtag1[0]} belongs to ${Team1}`);
+      } else {
+        console.log(`${Splashtag1[0]} is not found in the mapping.`);
+        Team1 = "NotFound";
+      }
+    const Splashtag5 = firstDetail.otherTeams[0].players.map(player =>{return player.name + "#" + player.nameId})
+    if (Splashtag5[0] in playerTeamMap) {
+        Team2 = playerTeamMap[Splashtag5[0]];
+        console.log(`${Splashtag5[0]} belongs to ${Team2}`);
+      } else {
+        console.log(`${Splashtag5[0]} is not found in the mapping.`);
+        Team2 = "NotFound";
+      }
 
+    // Keep track of score  
+    let Team1Wins = 0
+    let Team2Wins = 0
     // store relevent matches in 'matches'
-
-
     for (let selectionIndex of matchIndex){
         let match = matches[selectionIndex];
 
@@ -182,15 +233,22 @@ async function statsCommand(dm: DMChannel) {
             await dm.send("Invalid Index! Please start the process over");
             return;
         } 
- 
+    
         let id = match.id;
         let timePlayed = match.playedTime;
         let mode = match.vsRule.name;
         let stage = match.vsStage.name;
-        // let result = match.judgement;
+        let result = match.judgement;
         let details = (await splatnet.getBattleHistoryDetail(id)).data.vsHistoryDetail;
         let my_score = details.myTeam.result?.score
         let their_score = details.otherTeams[0].result?.score
+
+        if (result == "WIN"){
+            Team1Wins += 1;
+        }else if (result == "LOSE"){
+            Team2Wins += 1;
+        }
+
         let duration = Math.floor(details.duration / 60) + ":" + String(details.duration % 60).padStart(2, "0")
         let yourTeamDeets = details.myTeam.players.map(player => {
             return player.name +"#"+ player.nameId + "," + player.weapon.name + "," +
@@ -199,6 +257,8 @@ async function statsCommand(dm: DMChannel) {
                 "," + player.result?.special + "," + player.paint;
         });
         // console.log(yourTeamDeets[0]);
+
+        //TODO Oh fuck this shit breaks if people have commas in their names
         let p1 = ',,,,,,,';
         let p2 = ',,,,,,,';
         let p3 = ',,,,,,,';
@@ -272,7 +332,10 @@ async function statsCommand(dm: DMChannel) {
     })
 
     await dm.send(
-        {content: "Your data has been sent!, We have recieved " + matchIndex.length + " matches from you!"});
+        {content: "Your data has been sent!, We have recieved " + matchIndex.length + " matches from you!" + "\n testing Team Detection Feature, team names may be wrong if roster file does not match splashtag"
+     + "\n recieved a " +Team1Wins + " - " + Team2Wins + " between " + Team1 + " and " + Team2 + "\n You can verify games sent by checking the csv provided",
+     files: [{attachment: buffer, name: "data.csv"}]
+    });
 
 
     function extractRangeFromString(inputString : string){
@@ -313,7 +376,7 @@ for (let weburl of webhookurl){
                 name: username + "_" +Date.now() + "_Backup" +".csv"
             }]
             })
-            .then(console.log)
+            .then()
             .catch(console.error)
     }
 
