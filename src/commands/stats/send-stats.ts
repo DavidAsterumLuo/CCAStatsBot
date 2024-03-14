@@ -63,7 +63,7 @@ async function statsCommand(dm: DMChannel) {
     nxapi.addUserAgent('ccastatsbot/1.0.0 (+https://github.com/Candygoblen123/CCAStatsBot)');
 
     const {na_session_token, loadMessage} = await getNintendoAccountSessionToken(dm).catch(async (error) =>{
-        await dm.send("Improper Token! Be sure to not reuse tokens!: " + error +"\n Currently Android is not supported due to some URL issues" +"\nIf you are using Iphone you might have some issues here, try copy pasting the link into your browser instead of clicking it\n@Asterum if you need help with this error");
+        await dm.send("An error Has occurred!: " + error +"\n Currently Mobile is not supported due to some URL issues" +"\n@Asterum if you need help with this error");
         throw error;
     });
     let coralApi = await import('nxapi/coral');
