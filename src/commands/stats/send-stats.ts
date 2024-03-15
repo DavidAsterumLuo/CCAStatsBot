@@ -2,9 +2,10 @@
 
 import { match } from 'assert';
 import { error } from 'console';
-import { CommandInteraction, DMChannel, Message, Webhook, WebhookClient} from 'discord.js';
+import { CommandInteraction, DMChannel, Message, Webhook, WebhookClient, range} from 'discord.js';
 import { url } from 'inspector';
 import { sep } from 'path';
+import { versionMajorMinor } from 'typescript';
 
 
 const {webhookurl} = require('../../../config.json');
@@ -120,7 +121,6 @@ async function statsCommand(dm: DMChannel) {
     // This is the header for the CSV file later
     let header = "SubmittedBy,SubmittedAt,MatchID,MatchDateTime,Timer,Map,Mode,Team 1 Score,Team2 Score,P1 Splashtag,P1 Weapon,P1 KA,P1 Assists,P1 Deaths,P1 Special,P1 #Specials,P1 Paint,P2 Splashtag,P2 Weapon,P2 KA,P2 Assists,P2 Deaths,P2 Special,P2 #Specials,P2 Paint,P3 Splashtag,P3 Weapon,P3 KA,P3 Assists,P3 Deaths,P3 Special,P3 #Specials,P3 Paint,P4 Splashtag,P4 Weapon,P4 KA,P4 Assists,P4 Deaths,P4 Special,P4 #Specials,P4 Paint,P5 Splashtag,P5 Weapon,P5 KA,P5 Assists,P5 Deaths,P5 Special,P5 #Specials,P5 Paint,P6 Splashtag,P6 Weapon,P6 KA,P6 Assists,P6 Deaths,P6 Special,P6 #Specials,P6 Paint,P7 Splashtag,P7 Weapon,P7 KA,P7 Assists,P7 Deaths,P7 Special,P7 #Specials,P7 Paint,P8 Splashtag,P8 Weapon,P8 KA,P8 Assists,P8 Deaths,P8 Special,P8 #Specials,P8 Paint \n";
     let csvString = ""
-    // TODO create match selection logic
     let tmp = "";
     let selectionString = "";
     let index = 0;
@@ -204,23 +204,29 @@ async function statsCommand(dm: DMChannel) {
     } 
     const firstMatch = firstIndex.id
     const firstDetail = (await splatnet.getBattleHistoryDetail(firstMatch)).data.vsHistoryDetail;
-    const Splashtag1 = firstDetail.myTeam.players.map(player =>{return player.name + "#" + player.nameId})
-    if (Splashtag1[0] in playerTeamMap) {
-        Team1 = playerTeamMap[Splashtag1[0]];
-        console.log(`${Splashtag1[0]} belongs to ${Team1}`);
+    const ourTeamNames = firstDetail.myTeam.players.map(player =>{return player.name + "#" + player.nameId})
+    for (let i of ourTeamNames){
+        if (i in playerTeamMap) {
+            Team1 = playerTeamMap[i];
+            console.log(`${i} belongs to ${Team1}`);
+            break;
+          } else {
+            console.log(`${i} is not found in the mapping.`);
+            Team1 = "NotFound";
+          }
+    }
+
+    const otherTeamNames = firstDetail.otherTeams[0].players.map(player =>{return player.name + "#" + player.nameId})
+    for (let i of otherTeamNames)
+    if (i in playerTeamMap) {
+        Team2 = playerTeamMap[i];
+        console.log(`${i} belongs to ${Team2}`);
+        break;
       } else {
-        console.log(`${Splashtag1[0]} is not found in the mapping.`);
-        Team1 = "NotFound";
-      }
-    const Splashtag5 = firstDetail.otherTeams[0].players.map(player =>{return player.name + "#" + player.nameId})
-    if (Splashtag5[0] in playerTeamMap) {
-        Team2 = playerTeamMap[Splashtag5[0]];
-        console.log(`${Splashtag5[0]} belongs to ${Team2}`);
-      } else {
-        console.log(`${Splashtag5[0]} is not found in the mapping.`);
+        console.log(`${i} is not found in the mapping.`);
         Team2 = "NotFound";
       }
-
+      
     // Keep track of score  
     let Team1Wins = 0
     let Team2Wins = 0
@@ -228,7 +234,6 @@ async function statsCommand(dm: DMChannel) {
     for (let selectionIndex of matchIndex){
         let match = matches[selectionIndex];
 
-        // TODO, Let the user retry the select command on failure
         if (match == undefined){
             await dm.send("Invalid Index! Please start the process over");
             return;
