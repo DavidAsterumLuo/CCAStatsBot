@@ -3,3 +3,4 @@ config.json
 *.js
 node_modules/
 CCA_Stats.csv
+send-stats-rewrite.ts
