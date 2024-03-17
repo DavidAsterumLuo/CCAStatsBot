@@ -1,7 +1,7 @@
 #! /usr/bin/env node
 
 import { match } from 'assert';
-import { error } from 'console';
+import { error, timeStamp } from 'console';
 import { CommandInteraction, DMChannel, Message, Webhook, WebhookClient, range} from 'discord.js';
 import { url } from 'inspector';
 import { sep } from 'path';
@@ -126,13 +126,13 @@ async function statsCommand(dm: DMChannel) {
     let index = 0;
 
     for (let session of sessions){
-        let utcDateString = session.historyDetails.nodes[0].playedTime;
+        let utcDateString = session.historyDetails.nodes[session.historyDetails.nodes.length - 1].playedTime;
         let unixTimestamp = new Date(utcDateString).getTime() / 1000;
-        selectionString += String(index) + ": " + "<t:" + unixTimestamp + ":D>" + "\n"
+        selectionString += String(index) + ": " + "<t:" + unixTimestamp + ">" + "\n"
         index += 1;
     }
     await loadMessage.edit(selectionString);
-    await dm.send("What day were the matches played?\n respond with `select [number]` \nexample: `select 2`");
+    await dm.send("When were the matches played?\n respond with `select [number]` \nexample: `select 2`");
     const filter = (m: Message) => m.content.startsWith("select");
     let selectionMessage = await dm.awaitMessages({ filter, max: 1, time: 600_000, errors: ['time'] }).catch(async (error) => {
         await dm.send("Response timeout. Please start the process over.");
@@ -160,11 +160,17 @@ async function statsCommand(dm: DMChannel) {
     tmp = "";
     selectionString = "";
     index = 0;
+    //TODO add discord timestamp and score to matches
     for (let match of matches){
+        let utcDateString = match.playedTime;
+        let unixTimestamp = new Date(utcDateString).getTime() / 1000;
         tmp = "";
-        tmp += match.vsStage.name + ", ";
-        tmp += match.vsRule.name + ", ";
-        tmp += match.judgement;
+        tmp += match.vsRule.name + " on ";
+        tmp += match.vsStage.name + " at ";
+        tmp += "<t:" + unixTimestamp + ":t> score was "
+        let details = (await splatnet.getBattleHistoryDetail(match.id)).data.vsHistoryDetail;
+        tmp += details.myTeam.result?.score + " - "
+        tmp += details.otherTeams[0].result?.score
         selectionString += String(index) + ": " + tmp + "\n"
         index ++;
     }
