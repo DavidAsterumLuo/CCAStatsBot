@@ -169,7 +169,7 @@ async function statsCommand(dm: DMChannel) {
         tmp = "";
         tmp += match.vsRule.name + " on ";
         tmp += match.vsStage.name + " at ";
-        tmp += "<t:" + unixTimestamp + ":t> score was "
+        tmp += "<t:" + unixTimestamp + "> score was "
         let details = (await splatnet.getBattleHistoryDetail(match.id)).data.vsHistoryDetail;
         tmp += details.myTeam.result?.score + " - "
         tmp += details.otherTeams[0].result?.score
