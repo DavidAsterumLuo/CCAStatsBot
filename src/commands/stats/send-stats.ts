@@ -128,7 +128,9 @@ async function statsCommand(dm: DMChannel) {
     for (let session of sessions){
         let utcDateString = session.historyDetails.nodes[session.historyDetails.nodes.length - 1].playedTime;
         let unixTimestamp = new Date(utcDateString).getTime() / 1000;
-        selectionString += String(index) + ": " + "<t:" + unixTimestamp + ">" + "\n"
+        let recentDateString = session.historyDetails.nodes[0].playedTime;
+        let unixRecentDate = new Date(recentDateString).getTime() / 1000;
+        selectionString += String(index) + ": " + "<t:"+ unixRecentDate + ">" + " - " + "<t:" + unixTimestamp + ">" + "\n"
         index += 1;
     }
     await loadMessage.edit(selectionString);
