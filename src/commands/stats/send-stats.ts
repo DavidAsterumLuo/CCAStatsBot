@@ -174,9 +174,14 @@ async function statsCommand(dm: DMChannel) {
         tmp += details.myTeam.result?.score + " - "
         tmp += details.otherTeams[0].result?.score
         selectionString += String(index) + ": " + tmp + "\n"
+        if(index % 10 == 0 && index != 0){
+            dm.send(selectionString);
+            tmp = "";
+            selectionString = "";
+        }
         index ++;
     }
-    await dm.send(selectionString);
+    dm.send(selectionString + "\nEnd of session")
 
 
     // TODO improve selection command
