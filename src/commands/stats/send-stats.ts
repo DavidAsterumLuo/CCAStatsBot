@@ -6,11 +6,14 @@ import { CommandInteraction, DMChannel, Message, Webhook, WebhookClient, range} 
 import { url } from 'inspector';
 import { sep } from 'path';
 import { versionMajorMinor } from 'typescript';
-
+import { exec } from 'child_process';
+import { FORMERR } from 'dns';
 
 const {webhookurl} = require('../../../config.json');
 const { SlashCommandBuilder } = require('discord.js');
 const fs = require('node:fs');
+
+
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -119,7 +122,41 @@ async function statsCommand(dm: DMChannel) {
     // console.log((await splatnet.getBattleHistoryDetail(matches[0].id)).data.vsHistoryDetail);
 
     // This is the header for the CSV file later
-    let header = "SubmittedBy,SubmittedAt,MatchID,MatchDateTime,Timer,Map,Mode,Team 1 Score,Team2 Score,P1 Splashtag,P1 Weapon,P1 KA,P1 Assists,P1 Deaths,P1 Special,P1 #Specials,P1 Paint,P2 Splashtag,P2 Weapon,P2 KA,P2 Assists,P2 Deaths,P2 Special,P2 #Specials,P2 Paint,P3 Splashtag,P3 Weapon,P3 KA,P3 Assists,P3 Deaths,P3 Special,P3 #Specials,P3 Paint,P4 Splashtag,P4 Weapon,P4 KA,P4 Assists,P4 Deaths,P4 Special,P4 #Specials,P4 Paint,P5 Splashtag,P5 Weapon,P5 KA,P5 Assists,P5 Deaths,P5 Special,P5 #Specials,P5 Paint,P6 Splashtag,P6 Weapon,P6 KA,P6 Assists,P6 Deaths,P6 Special,P6 #Specials,P6 Paint,P7 Splashtag,P7 Weapon,P7 KA,P7 Assists,P7 Deaths,P7 Special,P7 #Specials,P7 Paint,P8 Splashtag,P8 Weapon,P8 KA,P8 Assists,P8 Deaths,P8 Special,P8 #Specials,P8 Paint \n";
+    let header = `
+SubmittedBy,SubmittedAt,MatchID,MatchDateTime,Timer,Map,Mode,Team 1 Score,Team2 Score,
+P1 Splashtag,P1 UUID,P1 Title,P1 NameplateImageURL,P1 NPBadgeURL1,P1 NPBadgeURL2,P1 NPBadgeURL3,P1 NPTextColor,P1 Species,P1 Weapon,P1 KA,P1 Deaths,P1 Assists,P1 #Specials,P1 Paint,
+P1 Head Gear Name,P1 Head Gear Main,P1 Head Gear Sub1,P1 Head Gear Sub2,P1 Head Gear Sub3,P1 Head Gear ImageURL,
+P1 Body Gear Name,P1 Body Gear Main,P1 Body Gear Sub1,P1 Body Gear Sub2,P1 Body Gear Sub3,P1 Body Gear ImageURL,
+P1 Shoes Gear Name,P1 Shoes Gear Main,P1 Shoes Gear Sub1,P1 Shoes Gear Sub2,P1 Shoes Gear Sub3,P1 Shoes Gear ImageURL,
+P2 Splashtag,P2 UUID,P2 Title,P2 NameplateImageURL,P2 NPBadgeURL1,P2 NPBadgeURL2,P2 NPBadgeURL3,P2 NPTextColor,P2 Species,P2 Weapon,P2 KA,P2 Deaths,P2 Assists,P2 #Specials,P2 Paint,
+P2 Head Gear Name,P2 Head Gear Main,P2 Head Gear Sub1,P2 Head Gear Sub2,P2 Head Gear Sub3,P2 Head Gear ImageURL,
+P2 Body Gear Name,P2 Body Gear Main,P2 Body Gear Sub1,P2 Body Gear Sub2,P2 Body Gear Sub3,P2 Body Gear ImageURL,
+P2 Shoes Gear Name,P2 Shoes Gear Main,P2 Shoes Gear Sub1,P2 Shoes Gear Sub2,P2 Shoes Gear Sub3,P2 Shoes Gear ImageURL,
+P3 Splashtag,P3 UUID,P3 Title,P3 NameplateImageURL,P3 NPBadgeURL1,P3 NPBadgeURL2,P3 NPBadgeURL3,P3 NPTextColor,P3 Species,P3 Weapon,P3 KA,P3 Deaths,P3 Assists,P3 #Specials,P3 Paint,
+P3 Head Gear Name,P3 Head Gear Main,P3 Head Gear Sub1,P3 Head Gear Sub2,P3 Head Gear Sub3,P3 Head Gear ImageURL,
+P3 Body Gear Name,P3 Body Gear Main,P3 Body Gear Sub1,P3 Body Gear Sub2,P3 Body Gear Sub3,P3 Body Gear ImageURL,
+P3 Shoes Gear Name,P3 Shoes Gear Main,P3 Shoes Gear Sub1,P3 Shoes Gear Sub2,P3 Shoes Gear Sub3,P3 Shoes Gear ImageURL,
+P4 Splashtag,P4 UUID,P4 Title,P4 NameplateImageURL,P4 NPBadgeURL1,P4 NPBadgeURL2,P4 NPBadgeURL3,P4 NPTextColor,P4 Species,P4 Weapon,P4 KA,P4 Deaths,P4 Assists,P4 #Specials,P4 Paint,
+P4 Head Gear Name,P4 Head Gear Main,P4 Head Gear Sub1,P4 Head Gear Sub2,P4 Head Gear Sub3,P4 Head Gear ImageURL,
+P4 Body Gear Name,P4 Body Gear Main,P4 Body Gear Sub1,P4 Body Gear Sub2,P4 Body Gear Sub3,P4 Body Gear ImageURL,
+P4 Shoes Gear Name,P4 Shoes Gear Main,P4 Shoes Gear Sub1,P4 Shoes Gear Sub2,P4 Shoes Gear Sub3,P4 Shoes Gear ImageURL,
+P5 Splashtag,P5 UUID,P5 Title,P5 NameplateImageURL,P5 NPBadgeURL1,P5 NPBadgeURL2,P5 NPBadgeURL3,P5 NPTextColor,P5 Species,P5 Weapon,P5 KA,P5 Deaths,P5 Assists,P5 #Specials,P5 Paint,
+P5 Head Gear Name,P5 Head Gear Main,P5 Head Gear Sub1,P5 Head Gear Sub2,P5 Head Gear Sub3,P5 Head Gear ImageURL,
+P5 Body Gear Name,P5 Body Gear Main,P5 Body Gear Sub1,P5 Body Gear Sub2,P5 Body Gear Sub3,P5 Body Gear ImageURL,
+P5 Shoes Gear Name,P5 Shoes Gear Main,P5 Shoes Gear Sub1,P5 Shoes Gear Sub2,P5 Shoes Gear Sub3,P5 Shoes Gear ImageURL,
+P6 Splashtag,P6 UUID,P6 Title,P6 NameplateImageURL,P6 NPBadgeURL1,P6 NPBadgeURL2,P6 NPBadgeURL3,P6 NPTextColor,P6 Species,P6 Weapon,P6 KA,P6 Deaths,P6 Assists,P6 #Specials,P6 Paint,
+P6 Head Gear Name,P6 Head Gear Main,P6 Head Gear Sub1,P6 Head Gear Sub2,P6 Head Gear Sub3,P6 Head Gear ImageURL,
+P6 Body Gear Name,P6 Body Gear Main,P6 Body Gear Sub1,P6 Body Gear Sub2,P6 Body Gear Sub3,P6 Body Gear ImageURL,
+P6 Shoes Gear Name,P6 Shoes Gear Main,P6 Shoes Gear Sub1,P6 Shoes Gear Sub2,P6 Shoes Gear Sub3,P6 Shoes Gear ImageURL,
+P7 Splashtag,P7 UUID,P7 Title,P7 NameplateImageURL,P7 NPBadgeURL1,P7 NPBadgeURL2,P7 NPBadgeURL3,P7 NPTextColor,P7 Species,P7 Weapon,P7 KA,P7 Deaths,P7 Assists,P7 #Specials,P7 Paint,
+P7 Head Gear Name,P7 Head Gear Main,P7 Head Gear Sub1,P7 Head Gear Sub2,P7 Head Gear Sub3,P7 Head Gear ImageURL,
+P7 Body Gear Name,P7 Body Gear Main,P7 Body Gear Sub1,P7 Body Gear Sub2,P7 Body Gear Sub3,P7 Body Gear ImageURL,
+P7 Shoes Gear Name,P7 Shoes Gear Main,P7 Shoes Gear Sub1,P7 Shoes Gear Sub2,P7 Shoes Gear Sub3,P7 Shoes Gear ImageURL,
+P8 Splashtag,P8 UUID,P8 Title,P8 NameplateImageURL,P8 NPBadgeURL1,P8 NPBadgeURL2,P8 NPBadgeURL3,P8 NPTextColor,P8 Species,P8 Weapon,P8 KA,P8 Deaths,P8 Assists,P8 #Specials,P8 Paint,
+P8 Head Gear Name,P8 Head Gear Main,P8 Head Gear Sub1,P8 Head Gear Sub2,P8 Head Gear Sub3,P8 Head Gear ImageURL,
+P8 Body Gear Name,P8 Body Gear Main,P8 Body Gear Sub1,P8 Body Gear Sub2,P8 Body Gear Sub3,P8 Body Gear ImageURL,
+P8 Shoes Gear Name,P8 Shoes Gear Main,P8 Shoes Gear Sub1,P8 Shoes Gear Sub2,P8 Shoes Gear Sub3,P8 Shoes Gear ImageURL
+`.replace(/\n/g, '') + "\n";
     let csvString = ""
     let tmp = "";
     let selectionString = "";
@@ -240,6 +277,18 @@ async function statsCommand(dm: DMChannel) {
         Team2 = "NotFound";
       }
       
+
+
+    // obtaining uuid from player.id
+    function get_uuid(playerID: string){
+        const regex = /:(u-.*$)/;
+        const match = atob(playerID).match(regex);
+        if (match){
+            return match[match.length-1];
+        }return '';
+    }
+    
+
     // Keep track of score  
     let Team1Wins = 0
     let Team2Wins = 0
@@ -269,22 +318,51 @@ async function statsCommand(dm: DMChannel) {
 
         let duration = Math.floor(details.duration / 60) + ":" + String(details.duration % 60).padStart(2, "0")
         let yourTeamDeets = details.myTeam.players.map(player => {
-            return player.name +"#"+ player.nameId + "," + player.weapon.name + "," +
-                player.result?.kill + "," + player.result?.death + "," +
-                player.result?.assist + "," + player.weapon.specialWeapon.name +
-                "," + player.result?.special + "," + player.paint;
+            return '"' + player.name + "#" + player.nameId + '"' + "," +
+                '"' + get_uuid(player.id) + '"' + "," + 
+                '"' + player.byname + '"' + "," + 
+                '"' + (player.nameplate?.background.image.url || '') + '"' + "," +  
+                '"' + (player.nameplate?.badges[0]?.image.url || '') + '"' + "," + 
+                '"' + (player.nameplate?.badges[1]?.image.url || '') + '"' + "," + 
+                '"' + (player.nameplate?.badges[2]?.image.url || '') + '"' + "," + 
+                '"' + (player.nameplate?.background.textColor || '') + '"' + "," + 
+                '"' + player.species + '"' + "," + 
+                '"' + player.weapon.name + '"' + "," +
+                '"' + (player.result?.kill || '') + '"' + "," + 
+                '"' + (player.result?.death || '') + '"' + "," + 
+                '"' + (player.result?.assist || '') + '"' + "," + 
+                '"' + (player.result?.special || '') + '"' + "," + 
+                '"' + (player.paint || '') + '"' + "," +
+                '"' + player.headGear.name + '"' + "," + 
+                '"' + player.headGear.primaryGearPower.name + '"' + "," + 
+                '"' + (player.headGear.additionalGearPowers[0]?.name || '') + '"' + "," + 
+                '"' + (player.headGear.additionalGearPowers[1]?.name || '') + '"' + "," + 
+                '"' + (player.headGear.additionalGearPowers[2]?.name || '') + '"' + "," + 
+                '"' + player.headGear.originalImage.url + '"' + "," +
+                '"' + player.clothingGear.name + '"' + "," + 
+                '"' + player.clothingGear.primaryGearPower.name + '"' + "," + 
+                '"' + (player.clothingGear.additionalGearPowers[0]?.name || '') + '"' + "," + 
+                '"' + (player.clothingGear.additionalGearPowers[1]?.name || '') + '"' + "," + 
+                '"' + (player.clothingGear.additionalGearPowers[2]?.name || '') + '"' + "," + 
+                '"' + player.clothingGear.originalImage.url + '"' + "," +
+                '"' + player.shoesGear.name + '"' + "," + 
+                '"' + player.shoesGear.primaryGearPower.name + '"' + "," + 
+                '"' + (player.shoesGear.additionalGearPowers[0]?.name || '') + '"' + "," + 
+                '"' + (player.shoesGear.additionalGearPowers[1]?.name || '') + '"' + "," + 
+                '"' + (player.shoesGear.additionalGearPowers[2]?.name || '') + '"' + "," + 
+                '"' + player.shoesGear.originalImage.url + '"';        
         });
-        // console.log(yourTeamDeets[0]);
-
-        //TODO Oh fuck this shit breaks if people have commas in their names
-        let p1 = ',,,,,,,';
-        let p2 = ',,,,,,,';
-        let p3 = ',,,,,,,';
-        let p4 = ',,,,,,,';
-        let p5 = ',,,,,,,';
-        let p6 = ',,,,,,,';
-        let p7 = ',,,,,,,';
-        let p8 = ',,,,,,,';
+                // console.log(yourTeamDeets[0]);
+        
+        //TODO Oh fuck this shit *SHOULDNT* break if people have commas in their names
+        let p1 = ',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,';
+        let p2 = ',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,';
+        let p3 = ',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,';
+        let p4 = ',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,';
+        let p5 = ',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,';
+        let p6 = ',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,';
+        let p7 = ',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,';
+        let p8 = ',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,';
         if (typeof(yourTeamDeets[0]) != 'undefined'){
             p1 = yourTeamDeets[0];
         }
@@ -298,10 +376,39 @@ async function statsCommand(dm: DMChannel) {
             p4 = yourTeamDeets[3];  
         }
         let theirTeamDeets = details.otherTeams[0].players.map(player => {
-            return player.name +"#"+ player.nameId + "," + player.weapon.name + "," +
-                player.result?.kill + "," + player.result?.death + "," +
-                player.result?.assist + "," + player.weapon.specialWeapon.name +
-                "," + player.result?.special + "," + player.paint;
+            return '"' + player.name + "#" + player.nameId + '"' + "," +
+                '"' + get_uuid(player.id) + '"' + "," + 
+                '"' + player.byname + '"' + "," + 
+                '"' + (player.nameplate?.background.image.url || '') + '"' + "," +  
+                '"' + (player.nameplate?.badges[0]?.image.url || '') + '"' + "," + 
+                '"' + (player.nameplate?.badges[1]?.image.url || '') + '"' + "," + 
+                '"' + (player.nameplate?.badges[2]?.image.url || '') + '"' + "," + 
+                '"' + (player.nameplate?.background.textColor || '') + '"' + "," + 
+                '"' + player.species + '"' + "," + 
+                '"' + player.weapon.name + '"' + "," +
+                '"' + (player.result?.kill || '') + '"' + "," + 
+                '"' + (player.result?.death || '') + '"' + "," + 
+                '"' + (player.result?.assist || '') + '"' + "," + 
+                '"' + (player.result?.special || '') + '"' + "," + 
+                '"' + (player.paint || '') + '"' + "," +
+                '"' + player.headGear.name + '"' + "," + 
+                '"' + player.headGear.primaryGearPower.name + '"' + "," + 
+                '"' + (player.headGear.additionalGearPowers[0]?.name || '') + '"' + "," + 
+                '"' + (player.headGear.additionalGearPowers[1]?.name || '') + '"' + "," + 
+                '"' + (player.headGear.additionalGearPowers[2]?.name || '') + '"' + "," + 
+                '"' + player.headGear.originalImage.url + '"' + "," +
+                '"' + player.clothingGear.name + '"' + "," + 
+                '"' + player.clothingGear.primaryGearPower.name + '"' + "," + 
+                '"' + (player.clothingGear.additionalGearPowers[0]?.name || '') + '"' + "," + 
+                '"' + (player.clothingGear.additionalGearPowers[1]?.name || '') + '"' + "," + 
+                '"' + (player.clothingGear.additionalGearPowers[2]?.name || '') + '"' + "," + 
+                '"' + player.clothingGear.originalImage.url + '"' + "," +
+                '"' + player.shoesGear.name + '"' + "," + 
+                '"' + player.shoesGear.primaryGearPower.name + '"' + "," + 
+                '"' + (player.shoesGear.additionalGearPowers[0]?.name || '') + '"' + "," + 
+                '"' + (player.shoesGear.additionalGearPowers[1]?.name || '') + '"' + "," + 
+                '"' + (player.shoesGear.additionalGearPowers[2]?.name || '') + '"' + "," + 
+                '"' + player.shoesGear.originalImage.url + '"';        
         });
         if (typeof(theirTeamDeets[0]) != 'undefined'){
             p5 = theirTeamDeets[0];
@@ -316,8 +423,10 @@ async function statsCommand(dm: DMChannel) {
             p8 = theirTeamDeets[3];
         }
         // TODO add team names, reference the python script
-        csvString += username + "," + currentTime + "," + id + "," + timePlayed + "," + duration + ","+ stage + "," + mode + "," + my_score + "," + their_score + "," + p1 + "," + p2 + "," + p3 + "," + p4 + "," + p5 + "," + p6 + "," + p7 + "," + p8 + "\n";
-        // Format: SubmittedBy, SubmittedAt, matchID, MatchDateTime, Timer, Map, Mode, Team1(Winner), Team 1 Score, Team 2(Loser), Team2 Score, P1 Splashtag, P1 Weapon, P1 KA, P1 Assists, P1 Deaths, P1 Specials, P1 Paint, P2...
+        csvString += '"' + username + '"' + "," + currentTime + "," + id + "," + timePlayed + "," + duration + ","+ '"' + stage + '"' + "," + mode + "," + my_score + "," + their_score + "," + p1 + "," + p2 + "," + p3 + "," + p4 + "," + p5 + "," + p6 + "," + p7 + "," + p8 + "\n";
+        // Format: SubmittedBy, SubmittedAt, matchID, MatchDateTime, Timer, Map, Mode, Team1(Winner), Team 1 Score, Team 2(Loser), Team2 Score,P1 Splashtag,P1 UUID,P1 Title,P1 Nameplate,P1, NameplateImageURL,P1 NPBadgeURL1,P1 NPBadgeURL2,P1 NPBadgeURL3,P1 NPTextColor,P1 Species,P1 Weapon,P1 KA,P1 Deaths,P1 Assists,P1 #Specials,P1 Paint,
+        // P1 Head Gear Name,P1 Head Gear Main,P1 Head Gear Sub1,P1 Head Gear Sub2,P1 Head Gear Sub3,P1 Head Gear ImageURL,P1 Body Gear Main,P1 Body Gear Sub1,P1 Body Gear Sub2,P1 Body Gear Sub3,P1 Body Gear ImageURL,P1 Shoes Gear Main,P1 Shoes Gear Sub1,P1 Shoes Gear Sub2,P1 Shoes Gear Sub3,P1 Shoes Gear ImageURL, P2...
+
 
     }
     // console.log(csvString)
@@ -348,6 +457,26 @@ async function statsCommand(dm: DMChannel) {
         }
 
     })
+
+    // Write to input.csv
+//    const inputFile = "input.csv";
+//    fs.writeFile(inputFile, header + csvString, 'utf-8', (err: any) => {
+//        if (err){
+//            console.error("failed to write to input.csv:", err);
+//        } else{
+//            console.log("input.csv writen");
+//            // Run python script
+//            exec('python TransformToPerPlayer.py', (error, stdout, stderr) => {
+//                if (error) {
+//                    console.error('error running TransformToPerPlayer.py', error);
+//                } else {
+//                    console.log('TransformToPerPlayer.py run successfully.');
+//                }
+//            })
+//        }
+//    })
+
+
 
     await dm.send(
         {content: "Your data has been sent!, We have recieved " + matchIndex.length + " matches from you!" + "\ntesting Team Detection Feature, this feature assumes matches submitted only between 2 teams and is not used for official scoring for the league"
@@ -389,6 +518,7 @@ async function statsCommand(dm: DMChannel) {
 for (let weburl of webhookurl){
         let webhook = new WebhookClient({url:weburl})
         webhook.send({
+            content:"User: " + username + " Sent matches at " + "<t:" + Math.floor(new Date().getTime()/1000) + ":F> " + "Timestamp: " + currentTime,
             files: [{
                 attachment: buffer,
                 name: username + "_" +Date.now() + "_Backup" +".csv"
