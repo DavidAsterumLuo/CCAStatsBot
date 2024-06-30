@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Player Average KA Bar Chart</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+  <h1>Player Average KA Bar Chart</h1>
+  <div id="chart"></div>
+
+  <h1>Player Average Paint Chart</h1>
+  <div id="paint-chart"></div>
+  <script>
+    // Load CSV data
+d3.csv("output.csv").then(data => {
+  // Create a map to store player data
+  let playerData = new Map();
+
+  // Calculate KA for each player and count the number of games played
+  data.forEach(row => {
+    const player = row.Splashtag;
+    const ka = parseInt(row.KA);
+    const team = row.Team;
+    const paint = parseInt(row.Paint);
+    // Update the player's data
+    if (!playerData.has(player)) {
+      playerData.set(player, { totalKA: 0, gamesPlayed: 0, totalPaint: 0});
+    }
+    const playerInfo = playerData.get(player);
+    playerInfo.totalKA += ka;
+    playerInfo.gamesPlayed += 1;
+    playerInfo.team = team;
+    playerInfo.totalPaint += paint;
+  });
+  // Calculate average KA for each player
+  const averageKAData = [];
+  playerData.forEach((value, key) => {
+    const averageKA = value.totalKA / value.gamesPlayed;
+    averageKAData.push({ player: key, averageKA: averageKA.toFixed(2), team: value.team });
+  });
+
+  // Sort data by team first, then by average KA
+averageKAData.sort((a, b) => {
+    if (a.team !== b.team) {
+        return a.team - b.team; // Sort by team
+    } else {
+        return b.averageKA - a.averageKA; // Sort by average KA within the same team decending
+    }
+});
+  // Set dimensions of the chart
+  const margin = { top: 20, right: 30, bottom: 80, left: 60 };
+  const width = 800 - margin.left - margin.right;
+  const height = 500 - margin.top - margin.bottom;
+
+  // Create Team Color function
+  function getBarColor(team){
+    if (team == 1){
+        return "blue";
+    } 
+    return "orange";
+  }
+
+  // Create an SVG container
+  const svg = d3.select("#chart")
+    .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", `translate(${margin.left},${margin.top})`);
+
+  // Create scales for the axes
+  const x = d3.scaleBand()
+    .domain(averageKAData.map(d => d.player))
+    .range([0, width])
+    .padding(0.1);
+
+  const y = d3.scaleLinear()
+    .domain([0, d3.max(averageKAData, d => +d.averageKA)])
+    .nice()
+    .range([height, 0]);
+  // Add the x-axis
+  svg.append("g")
+    .attr("transform", `translate(0,${height})`)
+    .call(d3.axisBottom(x))
+    .selectAll("text")
+    .style("text-anchor", "end")
+    .attr("transform", "rotate(-45)");
+
+  // Add the y-axis
+  svg.append("g")
+    .call(d3.axisLeft(y));
+
+  // Create bars for each player
+  svg.selectAll(".bar")
+    .data(averageKAData)
+    .enter()
+    .append("rect")
+    .attr("class", "bar")
+    .attr("x", d => x(d.player))
+    .attr("y", d => y(d.averageKA))
+    .attr("width", x.bandwidth())
+    .attr("height", d => height - y(d.averageKA))
+    .attr("fill", d => getBarColor(d.team));
+    console.log(averageKAData);
+  // Add labels to each bar
+  svg.selectAll(".text")
+    .data(averageKAData)
+    .enter()
+    .append("text")
+    .attr("class", "text")
+    .attr("x", d => x(d.player) + x.bandwidth() / 2)
+    .attr("y", d => y(d.averageKA) - 5)
+    .attr("text-anchor", "middle")
+    .text(d => d.averageKA);
+
+
+  // Start New Visualization
+
+  const averagePaintData = [];
+  playerData.forEach((value, key) => {
+    const averagePaint = value.totalPaint / value.gamesPlayed;
+    console.log(value.totalPaint);
+    averagePaintData.push({ player: key, averagePaint: averagePaint.toFixed(2), team: value.team });
+  });
+  // Sort data by team first, then by average Paint
+  averagePaintData.sort((a, b) => {
+    if (a.team !== b.team) {
+        return a.team - b.team; // Sort by team
+    } else {
+        return b.averagePaint - a.averagePaint; // Sort by average KA within the same team decending
+    }
+});
+  // Create an SVG container
+  const svgPaint = d3.select("#paint-chart")
+    .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", `translate(${margin.left},${margin.top})`);
+
+  // Create scales for the axes
+  const xPaint = d3.scaleBand()
+    .domain(averagePaintData.map(d => d.player))
+    .range([0, width])
+    .padding(0.1);
+
+  const yPaint = d3.scaleLinear()
+    .domain([0, d3.max(averagePaintData, d => +d.averagePaint)])
+    .nice()
+    .range([height, 0]);
+  // Add the x-axis
+  svgPaint.append("g")
+    .attr("transform", `translate(0,${height})`)
+    .call(d3.axisBottom(xPaint))
+    .selectAll("text")
+    .style("text-anchor", "end")
+    .attr("transform", "rotate(-45)");
+
+  // Add the y-axis
+  svgPaint.append("g")
+    .call(d3.axisLeft(yPaint));
+  // Create bars for each player
+  svgPaint.selectAll(".bar")
+    .data(averagePaintData)
+    .enter()
+    .append("rect")
+    .attr("class", "bar")
+    .attr("x", d => xPaint(d.player))
+    .attr("y", d => yPaint(d.averagePaint))
+    .attr("width", xPaint.bandwidth())
+    .attr("height", d => height - yPaint(d.averagePaint))
+    .attr("fill", d => getBarColor(d.team));
+    console.log(averagePaintData);
+  // Add labels to each bar
+  svgPaint.selectAll(".text")
+    .data(averagePaintData)
+    .enter()
+    .append("text")
+    .attr("class", "text")
+    .attr("x", d => xPaint(d.player) + xPaint.bandwidth() / 2)
+    .attr("y", d => yPaint(d.averagePaint) - 5)
+    .attr("text-anchor", "middle")
+    .text(d => d.averagePaint);
+});
+  </script>
+</body>
+</html>
