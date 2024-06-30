@@ -199,7 +199,6 @@ P8 Shoes Gear Name,P8 Shoes Gear Main,P8 Shoes Gear Sub1,P8 Shoes Gear Sub2,P8 S
     tmp = "";
     selectionString = "";
     index = 0;
-    //TODO add discord timestamp and score to matches
     for (let match of matches){
         let utcDateString = match.playedTime;
         let unixTimestamp = new Date(utcDateString).getTime() / 1000;
@@ -354,7 +353,6 @@ P8 Shoes Gear Name,P8 Shoes Gear Main,P8 Shoes Gear Sub1,P8 Shoes Gear Sub2,P8 S
         });
                 // console.log(yourTeamDeets[0]);
         
-        //TODO Oh fuck this shit *SHOULDNT* break if people have commas in their names
         let p1 = ',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,';
         let p2 = ',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,';
         let p3 = ',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,';
@@ -480,8 +478,8 @@ P8 Shoes Gear Name,P8 Shoes Gear Main,P8 Shoes Gear Sub1,P8 Shoes Gear Sub2,P8 S
 
     await dm.send(
         {content: "Your data has been sent!, We have recieved " + matchIndex.length + " matches from you!" + "\ntesting Team Detection Feature, this feature assumes matches submitted only between 2 teams and is not used for official scoring for the league"
-     + "\nrecieved " +Team1Wins + " wins from " + Team1 + " and " + Team2Wins + " wins from " + Team2 + "\nYou can verify games sent by checking the csv provided\nIf you have more games please run /send-stats again (do not reuse the copy pasted link)",
-     files: [{attachment: buffer, name: "data.csv"}]
+     + "\nrecieved " +Team1Wins + " wins from " + Team1 + " and " + Team2Wins + " wins from " + Team2 //+ "\nYou can verify games sent by checking the csv provided\nIf you have more games please run /send-stats again (do not reuse the copy pasted link)",
+    // files: [{attachment: buffer, name: "data.csv"}]
     });
 
 
@@ -514,7 +512,8 @@ P8 Shoes Gear Name,P8 Shoes Gear Main,P8 Shoes Gear Sub1,P8 Shoes Gear Sub2,P8 S
     
 
     //Send to webhook on CCA server (backup files)
-
+// TODO Save csv to google drive once per day.
+/*
 for (let weburl of webhookurl){
         let webhook = new WebhookClient({url:weburl})
         webhook.send({
@@ -527,5 +526,5 @@ for (let weburl of webhookurl){
             .then()
             .catch(console.error)
     }
-
+*/
 }
