@@ -8,6 +8,7 @@ module.exports = {
 		.setName('get-stats')
 		.setDescription('Retrieves the current CSV for all stats.'),
 	async execute(interaction: CommandInteraction) {
+		await interaction.deferReply({ephemeral: true});
         for (let weburl of webhookurl){
             let webhook = new WebhookClient({url:weburl})
             webhook.send({
@@ -19,11 +20,11 @@ module.exports = {
                 })
                 .then((result) => {
                     console.log(result);
-                    interaction.reply({ content: 'file sent to webhook!', ephemeral: true });
+                    interaction.editReply({ content: 'file sent to webhook!' });
                 })
                 .catch((error) =>{
                     console.error(error);
-                    interaction.reply({ content: 'Somthing went Wrong!' + error, ephemeral: true });
+                    interaction.reply({ content: 'Somthing went Wrong!' + error});
                 })
         }
 	},
