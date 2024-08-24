@@ -324,7 +324,7 @@ P8 Shoes Gear Name,P8 Shoes Gear Main,P8 Shoes Gear Sub1,P8 Shoes Gear Sub2,P8 S
                 '"' + (player.nameplate?.badges[0]?.image.url || '') + '"' + "," + 
                 '"' + (player.nameplate?.badges[1]?.image.url || '') + '"' + "," + 
                 '"' + (player.nameplate?.badges[2]?.image.url || '') + '"' + "," + 
-                '"' + (player.nameplate?.background.textColor.r + '|' + player.nameplate?.background.textColor.g + '|' + player.nameplate?.background.textColor.b + '|' + player.nameplate?.background.textColor.a || '') + '"' + "," + 
+                '"' + (Math.round((player.nameplate?.background.textColor.r || 1) * 255) + '|' + Math.round((player.nameplate?.background.textColor.g || 1) * 255) + '|' + Math.round((player.nameplate?.background.textColor.b || 1) * 255) + '|' + Math.round((player.nameplate?.background.textColor.r || 1) * 255)) + '"' + "," + 
                 '"' + player.species + '"' + "," + 
                 '"' + player.weapon.name + '"' + "," +
                 '"' + (player.result?.kill || '') + '"' + "," + 
@@ -381,7 +381,7 @@ P8 Shoes Gear Name,P8 Shoes Gear Main,P8 Shoes Gear Sub1,P8 Shoes Gear Sub2,P8 S
                 '"' + (player.nameplate?.badges[0]?.image.url || '') + '"' + "," + 
                 '"' + (player.nameplate?.badges[1]?.image.url || '') + '"' + "," + 
                 '"' + (player.nameplate?.badges[2]?.image.url || '') + '"' + "," + 
-                '"' + (player.nameplate?.background.textColor.r + '|' + player.nameplate?.background.textColor.g + '|' + player.nameplate?.background.textColor.b + '|' + player.nameplate?.background.textColor.a || '') + '"' + "," + 
+                '"' + (Math.round((player.nameplate?.background.textColor.r || 1) * 255) + '|' + Math.round((player.nameplate?.background.textColor.g || 1) * 255) + '|' + Math.round((player.nameplate?.background.textColor.b || 1) * 255) + '|' + Math.round((player.nameplate?.background.textColor.r || 1) * 255)) + '"' + "," + 
                 '"' + player.species + '"' + "," + 
                 '"' + player.weapon.name + '"' + "," +
                 '"' + (player.result?.kill || '') + '"' + "," + 
