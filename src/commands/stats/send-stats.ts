@@ -324,7 +324,7 @@ P8 Shoes Gear Name,P8 Shoes Gear Main,P8 Shoes Gear Sub1,P8 Shoes Gear Sub2,P8 S
                 '"' + (player.nameplate?.badges[0]?.image.url || '') + '"' + "," + 
                 '"' + (player.nameplate?.badges[1]?.image.url || '') + '"' + "," + 
                 '"' + (player.nameplate?.badges[2]?.image.url || '') + '"' + "," + 
-                '"' + (player.nameplate?.background.textColor || '') + '"' + "," + 
+                '"' + (player.nameplate?.background.textColor.r + '|' + player.nameplate?.background.textColor.g + '|' + player.nameplate?.background.textColor.b + '|' + player.nameplate?.background.textColor.a || '') + '"' + "," + 
                 '"' + player.species + '"' + "," + 
                 '"' + player.weapon.name + '"' + "," +
                 '"' + (player.result?.kill || '') + '"' + "," + 
@@ -381,7 +381,7 @@ P8 Shoes Gear Name,P8 Shoes Gear Main,P8 Shoes Gear Sub1,P8 Shoes Gear Sub2,P8 S
                 '"' + (player.nameplate?.badges[0]?.image.url || '') + '"' + "," + 
                 '"' + (player.nameplate?.badges[1]?.image.url || '') + '"' + "," + 
                 '"' + (player.nameplate?.badges[2]?.image.url || '') + '"' + "," + 
-                '"' + (player.nameplate?.background.textColor || '') + '"' + "," + 
+                '"' + (player.nameplate?.background.textColor.r + '|' + player.nameplate?.background.textColor.g + '|' + player.nameplate?.background.textColor.b + '|' + player.nameplate?.background.textColor.a || '') + '"' + "," + 
                 '"' + player.species + '"' + "," + 
                 '"' + player.weapon.name + '"' + "," +
                 '"' + (player.result?.kill || '') + '"' + "," + 
@@ -477,9 +477,8 @@ P8 Shoes Gear Name,P8 Shoes Gear Main,P8 Shoes Gear Sub1,P8 Shoes Gear Sub2,P8 S
 
 
     await dm.send(
-        {content: "Your data has been sent!, We have recieved " + matchIndex.length + " matches from you!" 
-			// + "\ntesting Team Detection Feature, this feature assumes matches submitted only between 2 teams and is not used for official scoring for the league"
-     // + "\nrecieved " +Team1Wins + " wins from " + Team1 + " and " + Team2Wins + " wins from " + Team2 //+ "\nYou can verify games sent by checking the csv provided\nIf you have more games please run /send-stats again (do not reuse the copy pasted link)",
+        {content: "Your data has been sent!, We have recieved " + matchIndex.length + " matches from you!" // + "\ntesting Team Detection Feature, this feature assumes matches submitted only between 2 teams and is not used for official scoring for the league"
+    // + "\nrecieved " +Team1Wins + " wins from " + Team1 + " and " + Team2Wins + " wins from " + Team2 //+ "\nYou can verify games sent by checking the csv provided\nIf you have more games please run /send-stats again (do not reuse the copy pasted link)",
     // files: [{attachment: buffer, name: "data.csv"}]
     });
 
@@ -517,12 +516,11 @@ P8 Shoes Gear Name,P8 Shoes Gear Main,P8 Shoes Gear Sub1,P8 Shoes Gear Sub2,P8 S
 for (let weburl of webhookurl){
         let webhook = new WebhookClient({url:weburl})
         webhook.send({
-            content:"User: " + username + " Sent matches at " + "<t:" + Math.floor(new Date().getTime()/1000) + ":F> " + "Timestamp: " + currentTime
-            /*,
+            content:"User: " + username + " Sent matches at " + "<t:" + Math.floor(new Date().getTime()/1000) + ":F> " + "Timestamp: " + currentTime,
             files: [{
                 attachment: buffer,
                 name: username + "_" +Date.now() + "_Backup" +".csv"
-            }]*/
+            }]
             })
             .then()
             .catch(console.error)
